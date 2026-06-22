@@ -1,4 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
+'use strict';
+const crypto = require('node:crypto');
 const { readFollowups, writeFollowups } = require('../storage');
 
 const tools = [
@@ -23,18 +24,9 @@ const tools = [
     input_schema: {
       type: 'object',
       properties: {
-        title: {
-          type: 'string',
-          description: 'Short title for the follow-up'
-        },
-        description: {
-          type: 'string',
-          description: 'Detailed description of the follow-up'
-        },
-        due_date: {
-          type: 'string',
-          description: 'Due date in YYYY-MM-DD format'
-        },
+        title: { type: 'string', description: 'Short title for the follow-up' },
+        description: { type: 'string', description: 'Detailed description of the follow-up' },
+        due_date: { type: 'string', description: 'Due date in YYYY-MM-DD format' },
         priority: {
           type: 'string',
           enum: ['low', 'medium', 'high'],
@@ -50,10 +42,7 @@ const tools = [
     input_schema: {
       type: 'object',
       properties: {
-        id: {
-          type: 'string',
-          description: 'The UUID of the follow-up to mark as done'
-        }
+        id: { type: 'string', description: 'The UUID of the follow-up to mark as done' }
       },
       required: ['id']
     }
@@ -62,16 +51,14 @@ const tools = [
 
 async function listFollowups({ status } = {}) {
   const followups = readFollowups();
-  if (status) {
-    return followups.filter((f) => f.status === status);
-  }
+  if (status) return followups.filter((f) => f.status === status);
   return followups;
 }
 
 async function addFollowup({ title, description, due_date, priority }) {
   const followups = readFollowups();
   const followup = {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     title,
     description: description || '',
     due_date,
@@ -86,9 +73,7 @@ async function addFollowup({ title, description, due_date, priority }) {
 async function completeFollowup({ id }) {
   const followups = readFollowups();
   const idx = followups.findIndex((f) => f.id === id);
-  if (idx === -1) {
-    return { error: `Follow-up with id ${id} not found` };
-  }
+  if (idx === -1) return { error: `Follow-up with id ${id} not found` };
   followups[idx].status = 'done';
   writeFollowups(followups);
   return followups[idx];

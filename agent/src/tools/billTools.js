@@ -1,4 +1,5 @@
-const { v4: uuidv4 } = require('uuid');
+'use strict';
+const crypto = require('node:crypto');
 const { readBills, writeBills } = require('../storage');
 
 const tools = [
@@ -23,22 +24,10 @@ const tools = [
     input_schema: {
       type: 'object',
       properties: {
-        name: {
-          type: 'string',
-          description: 'Name or description of the bill'
-        },
-        amount: {
-          type: 'number',
-          description: 'Amount due in dollars'
-        },
-        due_date: {
-          type: 'string',
-          description: 'Due date in YYYY-MM-DD format'
-        },
-        category: {
-          type: 'string',
-          description: 'Category such as utilities, rent, insurance, etc.'
-        }
+        name: { type: 'string', description: 'Name or description of the bill' },
+        amount: { type: 'number', description: 'Amount due in dollars' },
+        due_date: { type: 'string', description: 'Due date in YYYY-MM-DD format' },
+        category: { type: 'string', description: 'Category such as utilities, rent, insurance, etc.' }
       },
       required: ['name', 'amount', 'due_date']
     }
@@ -49,10 +38,7 @@ const tools = [
     input_schema: {
       type: 'object',
       properties: {
-        id: {
-          type: 'string',
-          description: 'The UUID of the bill to mark as paid'
-        }
+        id: { type: 'string', description: 'The UUID of the bill to mark as paid' }
       },
       required: ['id']
     }
@@ -61,16 +47,14 @@ const tools = [
 
 async function listBills({ status } = {}) {
   const bills = readBills();
-  if (status) {
-    return bills.filter((b) => b.status === status);
-  }
+  if (status) return bills.filter((b) => b.status === status);
   return bills;
 }
 
 async function addBill({ name, amount, due_date, category }) {
   const bills = readBills();
   const bill = {
-    id: uuidv4(),
+    id: crypto.randomUUID(),
     name,
     amount,
     due_date,
@@ -85,9 +69,7 @@ async function addBill({ name, amount, due_date, category }) {
 async function markBillPaid({ id }) {
   const bills = readBills();
   const idx = bills.findIndex((b) => b.id === id);
-  if (idx === -1) {
-    return { error: `Bill with id ${id} not found` };
-  }
+  if (idx === -1) return { error: `Bill with id ${id} not found` };
   bills[idx].status = 'paid';
   writeBills(bills);
   return bills[idx];

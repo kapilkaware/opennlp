@@ -1,5 +1,6 @@
-const fs = require('fs');
-const path = require('path');
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const BILLS_FILE = path.join(DATA_DIR, 'bills.json');
