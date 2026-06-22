@@ -1,74 +1,125 @@
-# AI Personal Assistant
+# AI Agent — Node.js + Express + Claude
 
-A locally deployable Node.js + Express agent powered by Claude. Manages emails, bills, and follow-ups via a chat UI.
+A locally deployable AI agent with a chat UI that can manage emails, track bills, and handle follow-up tasks — powered by Claude (claude-sonnet-4-6).
 
 ## Features
 
-- **Chat** — conversational interface backed by Claude with tool use
-- **Email** — read recent emails (IMAP) and send replies (SMTP/nodemailer)
-- **Bills** — add, list, and mark bills as paid (stored locally in JSON)
-- **Follow-ups** — create, list, and complete follow-up tasks
+- **Chat UI** — Single-page vanilla JS interface with conversation history
+- **Email management** — Read inbox via IMAP, send emails via SMTP
+- **Bill tracking** — Add, list, and mark bills as paid (JSON storage)
+- **Follow-up management** — Add, list, and complete follow-up items
+- **Agentic loop** — Claude autonomously selects and chains tools to fulfil requests
+
+## Requirements
+
+- Node.js 18+
+- npm
+- An Anthropic API key
+- IMAP/SMTP credentials (optional — only needed for email features)
 
 ## Setup
 
 ### 1. Install dependencies
 
 ```bash
-cd agent
+cd /home/user/opennlp/agent
 npm install
 ```
 
-### 2. Configure environment
+### 2. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` and fill in your values:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 
-# Gmail IMAP (enable "App Passwords" in Google Account settings)
+# IMAP (for reading email)
 EMAIL_USER=you@gmail.com
 EMAIL_PASS=your_app_password
 EMAIL_HOST=imap.gmail.com
 EMAIL_PORT=993
 
-# Gmail SMTP
+# SMTP (for sending email)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 
 PORT=3000
 ```
 
-> For Gmail, generate an [App Password](https://myaccount.google.com/apppasswords) — your regular password won't work with IMAP/SMTP.
-> For Outlook, use `imap-mail.outlook.com` (IMAP) and `smtp-mail.outlook.com` (SMTP).
+> **Gmail users:** Use an App Password (not your regular password). Enable 2FA, then generate an app password at https://myaccount.google.com/apppasswords
 
-### 3. Run
+### 3. Start the server
 
 ```bash
 npm start
 ```
 
-Open **http://localhost:3000** in your browser.
+### 4. Open the UI
 
-## REST API
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+
+## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/chat` | Send a message: `{ message, history[] }` |
+| POST | `/chat` | Send a message to the agent |
 | GET | `/bills` | List all bills |
-| POST | `/bills` | Add a bill: `{ name, amount, due_date, category }` |
+| POST | `/bills` | Add a bill |
 | PATCH | `/bills/:id` | Update a bill |
 | GET | `/followups` | List all follow-ups |
-| POST | `/followups` | Add a follow-up: `{ title, due_date, description, priority }` |
+| POST | `/followups` | Add a follow-up |
 | PATCH | `/followups/:id` | Update a follow-up |
-| GET | `/emails` | Fetch recent emails via IMAP |
-| POST | `/emails/send` | Send an email: `{ to, subject, body }` |
+| GET | `/emails` | Read inbox emails |
+| POST | `/emails/send` | Send an email |
 
-## Data storage
+### POST /chat
 
-Bills and follow-ups are persisted as JSON files in `agent/data/`:
-- `data/bills.json`
-- `data/followups.json`
+```json
+{
+  "message": "Show me all pending bills",
+  "history": []
+}
+```
+
+Response:
+```json
+{
+  "response": "Here are your pending bills...",
+  "history": [...]
+}
+```
+
+## File Structure
+
+```
+agent/
+├── server.js              # Express server + REST routes
+├── package.json
+├── .env.example
+├── data/
+│   ├── bills.json         # Bill storage (auto-created)
+│   └── followups.json     # Follow-up storage (auto-created)
+├── public/
+│   └── index.html         # Chat UI
+└── src/
+    ├── agent.js           # Claude agent with agentic loop
+    ├── storage.js         # JSON file read/write helpers
+    └── tools/
+        ├── emailTools.js  # IMAP + SMTP tool definitions
+        ├── billTools.js   # Bill CRUD tool definitions
+        └── followupTools.js # Follow-up CRUD tool definitions
+```
+
+## Example Prompts
+
+- "Check my emails"
+- "Add a bill: electricity $120 due 2026-07-01"
+- "Show all pending bills"
+- "Mark bill [id] as paid"
+- "Add a follow-up: call dentist tomorrow, high priority"
+- "Show open follow-ups"
+- "Send an email to boss@company.com about the project update"
